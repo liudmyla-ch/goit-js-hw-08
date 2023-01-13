@@ -1,56 +1,56 @@
 import throttle from 'lodash.throttle';
 
-const refs = {
-form : document.querySelector(".feedback-form"),
-email : document.querySelector(".feedback-form input"),
-message : document.querySelector(".feedback-form textarea")
+
+const form = document.querySelector('.feedback-form');
+const STORAGE_KEY = 'feedback-form-state';
+const formData = {}
+
+
+form.addEventListener('submit', onFormSubmit);
+form.addEventListener('input', throttle(onFormInput, 500));
+
+
+onPopulateForm();
+
+function onPopulateForm() {
+  const currentValue = onFormCurrentValue();
+
+  if (currentValue?.email) {
+    formData.email = form.email.value = currentValue.email;
+  }
+
+  if (currentValue?.message) {
+    formData.message = form.message.value = currentValue.message;
+  }
+};
+
+function onFormCurrentValue() {
+  return JSON.parse(localStorage.getItem(STORAGE_KEY));
+}
+
+
+function onFormInput(evt) {
+  formData[evt.target.name] = evt.target.value;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
 };
 
 
-refs.form.addEventListener('submit', OnFormSubmit);
-refs.form.addEventListener('input', throttle(OnFormInput, 500));
+function onFormSubmit(evt) {
+  evt.preventDefault();
 
+    if (!evt.target.email.value || !evt.target.message.value) {
+    return;
+  }
 
-
-const formData ={};
-
-
-function OnFormInput(evt){
-
-    formData[evt.target.name] = evt.target.value;
-    const formDataJson = JSON.stringify(formData);
-    localStorage.setItem("feedback-form-state", formDataJson);
-
+  console.log(onFormCurrentValue());
+  clearDataStorage();
+  evt.currentTarget.reset();
 };
 
-function OnFormSubmit(evt){
 
-    evt.preventDefault();
-    const savedInput = localStorage.getItem("feedback-form-state");
-    const savedInputJson = JSON.parse(savedInput);
-    console.log(savedInputJson);
-    evt.currentTarget.reset();
+
+function clearDataStorage() {
+  if (onFormCurrentValue()) {
+    localStorage.removeItem(STORAGE_KEY);
     localStorage.clear();
-
-
-};
-
-
-function OnPopulateForm(){
-  
-    const savedInput = localStorage.getItem("feedback-form-state");
-    
-    if (savedInput){
-        const savedInputJson = JSON.parse(savedInput);
-        refs.email.value = savedInputJson.email;
-        refs.message.value = savedInputJson.message;
-
-    }
-    
-};
-
-
-OnPopulateForm();
-
-
-
+  }}
